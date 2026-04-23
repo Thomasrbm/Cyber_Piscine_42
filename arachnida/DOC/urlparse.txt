@@ -1,0 +1,42 @@
+
+
+
+parse l'url dans une structur correspondant aux 6 parties 
+de l'url
+
+
+
+
+
+
+
+u = urlparse("https://user:pass@www.example.com:8080/path/to/page;session=1?q=python&lang=fr#section2")
+
+u.scheme    # 'https'  => le protocal (https, ftp, mailto etc)
+u.netloc    # 'user:pass@www.example.com:8080'
+
+u.path      # '/path/to/page'  la page 
+u.params    # 'session=1' (n 'est plus used)
+
+
+u.query     # 'q=python&lang=fr' filtres, catagorie, tracking marketing, identifiant video youtube
+
+
+u.fragment  # 'section2'  partie de la page 
+
+
+
+
+
+
+POUR LE NETLOC 
+
+dit le server, le mdp, l host et le port de la machine 
+à se co
+
+et sous attributs :
+
+u.hostname  # 'www.example.com'  (lowercased)
+u.port      # 8080  (en int, ou None)
+u.username  # 'user'
+u.password  # 'pass'

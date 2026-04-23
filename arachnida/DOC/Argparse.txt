@@ -1,0 +1,46 @@
+# 1. Création du parser
+parser = argparse.ArgumentParser(description="Un script qui dit bonjour")
+
+
+# 2. Définition des arguments
+parser.add_argument("nom") # Argument positionnel (obligatoire)
+
+# 3. Récupération des données
+args = parser.parse_args()
+
+print(f"Bonjour {args.nom}")
+
+
+
+
+Les arguments positionnels (Obligatoires)
+
+on donne sens au argument selon leur ordre 
+
+
+parser.add_argument("prenom")
+parser.add_argument("ville")
+
+
+py test.py thomas rouen stock :
+
+parser.prenom = thomas
+parser.ville = rouen
+
+
+sont obligatoire, erreur si pas présent
+
+
+
+
+
+
+les arguments optionnels flags avec - ou --
+
+pas grave si pas présent run quand meme 
+
+
+
+-r ou --recursive  pour avoir deux appelation pour la meme chose
+
+narg= *  ou 2 ou x pour spécifier apres le flag combien de choses 

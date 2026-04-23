@@ -1,0 +1,61 @@
+
+
+
+
+prend un input + un type de parser
+
+
+
+type de parser : 
+
+html : le builtin de base
+
+html5lib suit html5 a la lettre => dernier recours 
+
+lxml = rapide
+
+
+
+--------------------
+
+BS4 fait de 
+
+<!-- HTML source -->
+<html>
+  <head><title>Demo</title></head>
+  <body>
+    <h1>Hello</h1>
+    <p>Text <a href="foo.html">link</a></p>
+    <img src="cat.png" />
+  </body>
+</html>
+
+
+
+un 
+
+
+
+html
+├── head
+│   └── title
+│       └── "Demo"
+└── body
+    ├── h1
+    │   └── "Hello"
+    ├── p
+    │   ├── "Text "
+    │   └── a (href="foo.html")
+    │       └── "link"
+    └── img (src="cat.png")
+
+
+
+
+
+--------------------
+
+
+apres un peut find / find_all dans l'objet :
+
+soup.find_all("a", href=True)  # toutes les <a> qui ont un href

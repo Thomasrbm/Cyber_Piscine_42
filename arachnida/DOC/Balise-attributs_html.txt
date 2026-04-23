@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mon site</title>
+  </head>
+  <body>
+    <h1>Bienvenue</h1>
+    <p>Voici un <a href="autre.html">lien</a> et une image :</p>
+    <img src="photo.jpg" alt="Ma photo">
+  </body>
+</html>
+
+
+
+
+html = la page entiere
+head = le haut de page
+
+body : le contenu scrollable en gros 
+
+footer = le base de page
+
+le titre <h1></h1>
+
+div juste pour separer entre les truc du <body>
+
+
+
+
+<p></p>  = paragraphe
+
+
+
+
+---------- ANCRE
+
+
+<a href="https://example.com" target="_blank">Cliquer ici</a>
+
+
+
+Balise 
+
+
+
+
+
+
+
+<strong> : important (affiché en gras)
+<em> : emphase (affiché en italique)
+
+
+
+etc etc 
+
+<span> est le pendant inline de <div>. Tu l'utilises pour cibler un morceau de texte avec une classe CSS :
+<p>Le prix est de <span class="price">49.99€</span> seulement.</p>
+
+
+
+
+
+----------------------------------------------------------------------
+
+
+
+les attributs
+
+
+
+
+
+Generaux : 
+
+classC        lasse(s) CSS (pour styler, sélectionner)
+id            Identifiant unique dans la page
+style         CSS inline
+title         Tooltip au survol
+lang          Langue du contenu
+data-*        Données custom (data-user-id="42")
+hidden        Cache l'élément
+tabindex      Ordre de navigation au clavier
+role          Rôle d'accessibilité
+
+
+
+
+
+SPECIFIQUES 
+
+
+
+
+Attribut    balise où autorisé
+
+
+
+
+src → <img>, <script>, <iframe>, <audio>, <video>, <source>, <embed>, <track>, <input type="image">
+href → <a>, <link>, <area>, <base>
+action → <form>
+formaction → <button>, <input type="submit">
+cite → <blockquote>, <q>, <del>, <ins>
+data → <object>
+poster → <video>
+srcset → <img>, <source>
+manifest → <html> (déprécié)
+Attributs de formulaire
+action → <form>
+method → <form>
+enctype → <form>
+target → <form>, <a>, <area>, <base>
+name → <input>, <select>, <textarea>, <form>, <button>, <iframe>, <map>, <meta>, <object>, <param>
+type → <input>, <button>, <script>, <link>, <style>, <source>, <embed>, <object>, <ol>, <menu>
+value → <input>, <option>, <button>, <li>, <meter>, <progress>, <param>
+placeholder → <input>, <textarea>
+required → <input>, <select>, <textarea>
+disabled → <input>, <button>, <select>, <textarea>, <option>, <optgroup>, <fieldset>
+readonly → <input>, <textarea>
+checked → <input type="checkbox">, <input type="radio">
+selected → <option>
+multiple → <input type="file">, <select>
+min / max → <input>, <meter>, <progress>
+minlength / maxlength → <input>, <textarea>
+step → <input>
+pattern → <input>
+accept → <input type="file">
+autocomplete → <form>, <input>, <select>, <textarea>
+autofocus → <input>, <select>, <textarea>, <button>
+form → <input>, <button>, <select>, <textarea>, <label>, <object>, <output>, <fieldset>
+for → <label>, <output>
+rows / cols → <textarea>
+wrap → <textarea>
+
+
+
+
+src = URL de l'image ou audio (de la ressource en gros)
+
+alt = texte alternatif
+
+class = sert à "typer" des divs pour toutes les cibler plus tard ex <div class="card">  .card { border: 1px solid }  stylise toutes les card
+
+id = doit etre unique par page, donc identifi 1 seul élément
+
+href =
+
+
+
+
+--------- URL D UNE RESSOURCE  = rien à voire avec la structure des fichiers  ---------
+
+
+peut l'etre mais la ressource peut etre aussi stocker sur un autre serveur
+
+
+la requete GET 
+
+
+sur serv NODE js  dans le dossier public
+
+
+c'est un identifiant pour les requete backend 
+
+la recket recoit la demande pour cette image et renvoit depuis la db ou autre l'image

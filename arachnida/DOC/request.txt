@@ -1,0 +1,70 @@
+
+
+1/ GET
+
+get = 
+
+
+parse l'url
+
+résolution dns : domaine to IP
+
+crée le socket TCP 
+
+construit la requete : 
+
+GET /img/cat.png HTTP/1.1
+   Host: cdn.example.com
+   User-Agent: python-requests/2.31.0
+   Accept-Encoding: gzip, deflate
+   Accept: */*
+   Connection: keep-alive
+
+   
+
+recoit une réponse : 
+
+
+
+----------- status line : 
+
+HTTP/<version> <code> <reason-phrase>
+HTTP/1.1 200 OK
+
+r.status_code  # 200  ← le code
+r.reason       # 'OK'  ← la reason phrase
+
+----------- Headers : 
+
+Nom: Valeur
+
+
+Content-Type: image/png  => poiur savoir comment traiter si json, pdf etc
+Content-Length: 12487
+Server: nginx/1.21.0
+Date: Mon, 20 Apr 2026 14:23:01 GMT
+Cache-Control: max-age=3600
+Content-Encoding :  (si le body est compressé mais ici la fonction décompresse)
+location :  pour redireiger si nouveau nom de domaine. 
+
+set_cookie : request ignore par defaut
+
+
+Cache-Control: max-age=3600 = "tu peux garder cette réponse 1h sans redemander".
+
+
+
+----------- 3. La ligne vide : 
+
+\r\n\r\n
+
+----------- 4. BOdy : 
+
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html>...
+
+
+
+
