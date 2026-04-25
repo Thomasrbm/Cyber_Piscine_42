@@ -1,5 +1,59 @@
 
 
+
+
+Hyper text transfert protocol
+
+
+
+
+hypertext = avec des liens, vers des parties ou d'autres documents
+(texte augmenté)
+
+
+-----------------------------------------------
+
+Exemple :  
+
+serveur linux sur nginx (écrit en C), backend node js
+
+
+pc sur chromme (en c++),
+
+
+
+1/ parsing
+
+quand tu tape l URL 
+
+
+la navigateur la parse
+
+scheme   = "https"
+host     = "example.com"
+port     = 443  (par défaut pour https)
+path     = "/index.html"
+
+
+il get l'ip + crée un socket  + crée un paquete requete tcp  qui encapsule la requete 
+https
+
+
+2/ recoit sur le serveur et renvoit la page + des ressources
+
+
+3/ si y'a une image par exemple le navigateur voit img et refait
+requete 
+
+
+4/ le serveur va chercher ou est l'image avec requete back et 
+renvoit les octet de l'image pour que la nav les recoit et les affiches
+
+
+
+
+
+
 1/ GET
 
 get = 

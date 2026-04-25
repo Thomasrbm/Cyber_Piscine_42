@@ -10,7 +10,7 @@ visited = set()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("url", help="URL to scrape")
+    parser.add_argument("url")
     parser.add_argument("-r", action="store_true")
     parser.add_argument("-l", type=int, default=5)
     parser.add_argument("-p", default="./data/")
@@ -19,14 +19,21 @@ def parse_args():
 
 def download_image(img_url, save_file_path):
     try:
+        # requete get pour l'image
         r = requests.get(img_url, timeout=5)
         r.raise_for_status()
+        # r.content a les bytes de l img
         filename = os.path.basename(urlparse(img_url).path)
+        # avec url de l'image url parse stock dans une PArse result
+        # chaque partie de l'url, dont une qui est path = /photos/cat.png
+        # base name prend le bout apres le dernie / donc ici cat.png
         if not filename:
             return
         filepath = os.path.join(save_file_path, filename)
+        # met le fichier dans le bon dossier save
         with open(filepath, "wb") as f:
             f.write(r.content)
+        # on écrit les byte de l'image dans le fichier dest
         print(f"[+] {img_url}")
     except Exception as e:
         print(f"[-] {img_url}: {e}")
@@ -45,11 +52,13 @@ def scrape_page(url, save_file_path):
     for img in soup.find_all("img"):
         # img = objet tag qui contient nom : div, a, img
         # attribut src, alt, class
-        # les sous balises enfants, ref au parent etc   
+        # les sous balises enfants, ref au parent etc
         src = img.get("src")
+        # pour toutes les lignes avec img, on get la src (irl de l'img)
         if not src:
             continue
-        full_url = urljoin(url, src)  # reconstruit url de la page + url de l'image
+        full_url = urljoin(url, src)
+        # reconstruit url de la page + url de l'image
         if full_url.lower().endswith(EXTENSIONS):
             download_image(full_url, save_file_path)
 
@@ -62,6 +71,7 @@ def crawl(url, save_file_path, depth, max_depth, base_domain):
     scrape_page(url, save_file_path)
     if depth == max_depth:
         return
+    # va try toutes les sous page de la page courrante
     try:
         r = requests.get(url, timeout=5)
         soup = BeautifulSoup(r.text, "html.parser")
