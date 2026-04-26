@@ -1,3 +1,66 @@
+
+
+
+Google authenticathor avec code a 6 chiffre toutes les 30 secondes changé
+
+
+
+
+secret + heure actuel = mdp unique
+
+
+impossible de généré infinité de mdp à l'avance
+sans le secret
+
+
+
+
+protège du phishing. si le mdp a 6 chiffre est stolen
+il change dans 30 sec donc pas grave
+
+
+
+si la db fuite on a la password otp mais pas le secret
+
+
+anti keylogger
+
+
+anti bruteforce
+
+
+
+--------------------------------------
+
+comment fonctionne  : 
+
+pour nous. 
+
+
+
+- un mdp qui sera la clef aes (en mdp pour pas la stocker en dure dans le code ni null part)
+- un hexa (le secret)  qui va etre chiffré avec la clef (mdp mis en hash = clef aes)
+- déchiffre le secret enleve le salt et le nonce et decypher (demande le mdp ici ducoup pck on a pas stocker la clef)
+- calcul totp => renvoit 6 chiffres qui sont le OTP
+
+
+
+sur google pareil en gros mais le secret ne dépendent d'aucun mdp user
+il est généré par google 
+
+et tout est store sur le compte user mais rien n'est en clair ni rien ne provient du user
+c'est le seul ien
+
+pas de mdp car google sécurise autrement avec sa db ultra safe.
+nous pas de db donc mdp
+
+--------------------------------------
+
+exemple usage : 
+
+
+
+
 # Clé trop courte (exemple du sujet)
 echo -n "NEVER GONNA GIVE YOU UP" > short.txt
 py ft_otp.py  -g short.txt

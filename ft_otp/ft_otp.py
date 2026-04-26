@@ -1,18 +1,30 @@
 #!/usr/bin/env python3
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# permet de fait ./
+import sys
 
 
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "-i":
         from gui import run
         run(sys.argv[2] if len(sys.argv) == 3 else "ft_otp.key")
+        # si ./ft_otp -i use ft_otp.key sinon le truc passé en arg
         return
+
     if len(sys.argv) != 3 or sys.argv[1] not in ("-g", "-k", "-q"):
-        sys.exit("usage: ./ft_otp -g <hexkey> | -k <ft_otp.key> | -q <hexkey> | -i [ft_otp.key]")
+        sys.exit("usage: ./ft_otp -g <hexkey> \
+                 | -k <ft_otp.key> | -q <hexkey> \
+                 | -i [ft_otp.key]")
+
     from cli import store, generate, qr
     try:
-        {"-g": store, "-k": generate, "-q": qr}[sys.argv[1]](sys.argv[2])
+        flag = sys.argv[1]
+        arg = sys.argv[2]
+        if flag == "-g":
+            store(arg)
+        elif flag == "-k":
+            generate(arg)
+        elif flag == "-q":
+            qr(arg)
     except OSError as e:
         sys.exit(f"./ft_otp: error: {e.strerror}: '{e.filename}'")
     except ValueError:
