@@ -1,4 +1,3 @@
-"""Display, modify or delete image metadata."""
 import argparse
 import os
 import sys
@@ -7,93 +6,127 @@ from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import GPSTAGS, TAGS
 
 
-def parse_exif(img):
-    exif = img.getexif()
-    out = {}
-    for tid, val in exif.items():
-        name = TAGS.get(tid, tid)
-        if name == "GPSInfo":
-            val = {GPSTAGS.get(k, k): v for k, v in val.items()}
-        out[name] = val
-    return out
+# deux dico avec les value des tags
+def parse_exif(image):
+    raw_exif = image.getexif()
+    exif_dict = {}
+    for tag_id, value in raw_exif.items():
+        tag_name = TAGS.get(tag_id)
+        # si gps info cas spécial on cherche dans gps dico
+        if tag_name == "GPSInfo":
+            value = {GPSTAGS.get(gps_id): v for gps_id, v in value.items()}
+        exif_dict[tag_name] = value
+    return exif_dict
 
 
-def display(path):
-    print(f"\n=== {path} ===")
-    if not os.path.isfile(path):
-        return print("[!] File not found")
-    st = os.stat(path)
-    fmt = "%Y-%m-%d %H:%M:%S"
-    print(f"Size:     {st.st_size} bytes")
-    print(f"Created:  {datetime.fromtimestamp(st.st_ctime).strftime(fmt)}")
-    print(f"Modified: {datetime.fromtimestamp(st.st_mtime).strftime(fmt)}")
+def display(file):
+    print(f"\n=== {file} ===")
+    if not os.path.isfile(file):
+        return print("error : File not found")
+
+    # os stat meta donné de base
+    file_stat = os.stat(file)
+    date_format = "%Y-%m-%d %H:%M:%S"
+    created = datetime.fromtimestamp(file_stat.st_ctime).strftime(date_format)
+    modified = datetime.fromtimestamp(file_stat.st_mtime).strftime(date_format)
+    print(f"Size:     {file_stat.st_size} bytes")
+    print(f"Created:  {created}")
+    print(f"Modified: {modified}")
+
     try:
-        with Image.open(path) as img:
-            print(f"Format:   {img.format}\nMode:     {img.mode}")
-            print(f"Size:     {img.width}x{img.height}")
-            exif = parse_exif(img)
-    except (UnidentifiedImageError, OSError) as e:
-        return print(f"[!] Cannot read image: {e}")
-    if not exif:
+        with Image.open(file) as image:
+            print(f"Format:   {image.format}")
+            print(f"Mode:     {image.mode}")
+            print(f"Size:     {image.width}x{image.height}")
+            exif_dict = parse_exif(image)
+    except (UnidentifiedImageError, OSError) as error:
+        return print(f"error : Cannot read image: {error}")
+
+    if not exif_dict:
         return print("EXIF:     (none)")
+
     print("EXIF:")
-    for k, v in exif.items():
-        s = str(v)
-        print(f"  {k}: {s[:97] + '...' if len(s) > 100 else s}")
+    for tag_name, value in exif_dict.items():
+        # value en string + ... si longue
+        value_str = str(value)
+        if len(value_str) > 100:
+            value_str = value_str[:97] + "..."
+        print(f"  {tag_name}: {value_str}")
 
 
+# lazy export pour catch si la piexit pas installé au lieu de crash
 def _piexif():
     try:
         import piexif
         return piexif
     except ImportError:
-        sys.exit("[!] piexif required: pip install piexif")
+        sys.exit("error :  piexif required: pip install piexif")
 
 
-def delete_exif(path):
+def delete_exif(img):
     px = _piexif()
     try:
-        px.remove(path)
-        print(f"[+] EXIF removed from {path}")
+        px.remove(img)
+        print(f"[-] EXIF removed from {img}")
     except (OSError, px.InvalidImageDataError) as e:
-        print(f"[!] {path}: {e}")
+        print(f"error :  {img}: {e}")
 
 
-def modify_exif(path, changes):
-    px = _piexif()
+def modify_exif(img, changes):
+    piexif = _piexif()
     try:
-        exif = px.load(path)
-        for kv in changes:
-            tag, _, val = kv.partition("=")
-            tid = getattr(px.ImageIFD, tag, None)
-            if tid is None:
-                print(f"[!] Unknown tag: {tag}")
+        exif_data = piexif.load(img)
+        for change in changes:
+            tag_name, _, new_value = change.partition("=")
+            # renvoit un tuple avec les 3 partie
+            #  le tag le = et la value stock dans 3 var
+            tag_id = getattr(piexif.ImageIFD, tag_name, None)
+            # classe qui contient les id de tous les exifs
+            # piexif.ImageIFD.Make            # 271
+            # piexif.ImageIFD.Model           # 272
+            if tag_id is None:
+                print(f"error : Unknown tag: {tag_name}")
                 continue
-            exif["0th"][tid] = val.encode()
-        px.insert(px.dump(exif), path)
-        print(f"[+] EXIF updated in {path}")
-    except (OSError, px.InvalidImageDataError, ValueError) as e:
-        print(f"[!] {path}: {e}")
+            # 0th block exif principal
+            exif_data["0th"][tag_id] = new_value.encode()
+            # encode convertit en byte comme le veut piexif
+        piexif.insert(piexif.dump(exif_data), img)
+        # dump met en byte (format pour images)
+        # inset met dans l'image
+        print(f"[+] EXIF updated in {img}")
+    except (OSError, piexif.InvalidImageDataError, ValueError) as e:
+        print(f"error : {img}: {e}")
 
 
 def main():
     argv = sys.argv[1:]
+    # flags == m puis modify
     for flag in ("-m", "--modify"):
-        if flag in argv and not any(
-                not a.startswith("-") for a in argv[:argv.index(flag)]):
-            sys.exit("[!] FILE(s) must come BEFORE -m\n"
+        if flag not in argv:
+            continue
+        # si flag present check si y'a mot avant le -m qui serait sans -
+        # donc qui serait un fichier
+        before = argv[:argv.index(flag)]
+        has_file = any(not a.startswith("-") for a in before)
+        if not has_file:
+            sys.exit("error :  FILE(s) must come BEFORE -m\n"
                      "    Correct: scorpion.py file.jpg -m Make=Sony")
-    p = argparse.ArgumentParser(
-        description=__doc__,
-        usage="%(prog)s FILE [FILE ...] [-d | -m TAG=VALUE ...]")
+
+    p = argparse.ArgumentParser()
     p.add_argument("files", nargs="+")
+    # cree groupe dans le parser de flag qui sont mutuellement exclusif
     g = p.add_mutually_exclusive_group()
     g.add_argument("-d", "--delete", action="store_true")
-    g.add_argument("-m", "--modify", nargs="+", metavar="TAG=VALUE")
-    a = p.parse_args()
-    for f in a.files:
-        (delete_exif if a.delete else
-         (lambda f: modify_exif(f, a.modify)) if a.modify else display)(f)
+    g.add_argument("-m", "--modify", nargs="+")
+    args = p.parse_args()
+
+    for file in args.files:
+        if args.delete:
+            delete_exif(file)
+        elif args.modify:
+            modify_exif(file, args.modify)
+        else:
+            display(file)
 
 
 if __name__ == "__main__":
