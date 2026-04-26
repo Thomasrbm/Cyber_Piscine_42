@@ -1,0 +1,84 @@
+# Clé trop courte (exemple du sujet)
+echo -n "NEVER GONNA GIVE YOU UP" > short.txt
+py ft_otp.py  -g short.txt
+# → error: key must be 64 hexadecimal characters.
+
+# Clé non-hex
+echo -n "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" > bad.txt
+py ft_otp.py  -g bad.txt
+# → error: key must be 64 hexadecimal characters.
+
+# Fichier inexistant
+py ft_otp.py  -g doesnotexist.hex
+# → FileNotFoundError (acceptable, ou tu peux la catcher)
+
+# Clé exactement 63 chars (limite basse)
+python3 -c "print('a'*63, end='')" > 63.hex
+py py ft_otp.py  -g 63.hex
+# → error: key must be 64 hexadecimal characters.
+
+# Clé pile 64 chars valides
+python3 -c "print('a'*64, end='')" > 64.hex
+py py ft_otp.py  -g 64.hex
+# → demande passphrase, puis "Key was successfully saved"
+
+--------------------
+
+
+echo -n "3132333435363738393031323334353637383930313233343536373839303132" > key.hex
+wc -c key.hex                     # doit afficher 64
+py ft_otp.py  -g key.hex               # demande passphrase
+ls -la ft_otp.key                 # doit exister, perms -rw-------, 76 bytes
+file ft_otp.key                   # data (binaire)
+hexdump -C ft_otp.key | head -3   # vérifier que c'est random/illisible
+
+
+
+--------------------
+
+
+
+py ft_otp.py  -k ft_otp.key            # demande passphrase, affiche un code 6 chiffres
+
+# Comparaison avec oathtool (LA validation principale)
+py ft_otp.py  -k ft_otp.key            # par exemple 123456
+oathtool --totp $(cat key.hex)    # doit afficher 123456 dans la même fenêtre 30s
+
+# Idempotence dans la même fenêtre 30s : même OTP
+py ft_otp.py  -k ft_otp.key
+py ft_otp.py  -k ft_otp.key            # même résultat
+
+# Changement de fenêtre
+py ft_otp.py  -k ft_otp.key
+sleep 30
+py ft_otp.py  -k ft_otp.key            # OTP différent
+
+
+
+
+
+--------------------
+
+py ft_otp.py  -q key.hex
+# → "QR code saved to ft_otp.png"
+ls -la ft_otp.png                 # doit exister
+file ft_otp.png                   # PNG image data
+
+
+
+
+--------------------
+
+
+
+py ft_otp.py  -i ft_otp.key
+
+
+-------
+
+
+cp ft_otp.desktop ~/.local/share/applications/
+update-desktop-database ~/.local/share/applications/ 2>/dev/null
+
+
+puis rechercher dans la liste des truc a exec . s exec en un clique 

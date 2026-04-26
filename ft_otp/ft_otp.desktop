@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=ft_otp
+Comment=TOTP generator
+Exec=python3 ft_otp.py -i
+Path=/home/thomas-ubunbtu/Bureau/Code/Cyber_Piscine_42/ft_otp
+Terminal=true
+Icon=dialog-password
+Categories=Utility;Security;
