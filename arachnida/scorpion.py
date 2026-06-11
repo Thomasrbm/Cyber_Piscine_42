@@ -7,6 +7,7 @@ from PIL.ExifTags import GPSTAGS, TAGS
 
 
 # deux dico avec les value des tags
+# lit exif de l image et renvoit un dico
 def parse_exif(image):
     raw_exif = image.getexif()
     exif_dict = {}
@@ -18,13 +19,26 @@ def parse_exif(image):
         exif_dict[tag_name] = value
     return exif_dict
 
+# affiche le dico de l image (donc son exif)
+def print_exif(exif_dict):
+    if not exif_dict:
+        return print("EXIF:     (none)")
+    print("EXIF:")
+    for tag_name, value in exif_dict.items():
+        # value en string, tronquée si trop longue
+        value_str = str(value)
+        if len(value_str) > 100:
+            value_str = value_str[:97] + "..."
+        print(f"  {tag_name}: {value_str}")
 
+
+# rend propre l affichage avec infos en plus sur l image
 def display(file):
     print(f"\n=== {file} ===")
     if not os.path.isfile(file):
         return print("error : File not found")
 
-    # os stat meta donné de base
+    # os.stat : metadonnées de base du fichier
     file_stat = os.stat(file)
     date_format = "%Y-%m-%d %H:%M:%S"
     created = datetime.fromtimestamp(file_stat.st_ctime).strftime(date_format)
@@ -42,16 +56,7 @@ def display(file):
     except (UnidentifiedImageError, OSError) as error:
         return print(f"error : Cannot read image: {error}")
 
-    if not exif_dict:
-        return print("EXIF:     (none)")
-
-    print("EXIF:")
-    for tag_name, value in exif_dict.items():
-        # value en string + ... si longue
-        value_str = str(value)
-        if len(value_str) > 100:
-            value_str = value_str[:97] + "..."
-        print(f"  {tag_name}: {value_str}")
+    print_exif(exif_dict)
 
 
 # lazy export pour catch si la piexit pas installé au lieu de crash
@@ -64,62 +69,57 @@ def _piexif():
 
 
 def delete_exif(img):
-    px = _piexif()
+    piexif = _piexif()
     try:
-        px.remove(img)
+        piexif.remove(img)
         print(f"[-] EXIF removed from {img}")
-    except (OSError, px.InvalidImageDataError) as e:
+    except (OSError, piexif.InvalidImageDataError) as e:
         print(f"error :  {img}: {e}")
 
 
+# chaque image a son dico, on reecrase le dico a chaque fois
 def modify_exif(img, changes):
     piexif = _piexif()
     try:
         exif_data = piexif.load(img)
         for change in changes:
+            # "Make=Sony" -> tag_name="Make", new_value="Sony"
             tag_name, _, new_value = change.partition("=")
-            # renvoit un tuple avec les 3 partie
-            #  le tag le = et la value stock dans 3 var
+            # ImageIFD donne l'id numerique du tag (ex: Make -> 271)
             tag_id = getattr(piexif.ImageIFD, tag_name, None)
-            # classe qui contient les id de tous les exifs
-            # piexif.ImageIFD.Make            # 271
-            # piexif.ImageIFD.Model           # 272
             if tag_id is None:
                 print(f"error : Unknown tag: {tag_name}")
                 continue
-            # 0th block exif principal
+            # piexif range les exif par section : "0th" (image principale),
+            # "Exif", "GPS"... Make/Model sont dans "0th". encode() car
+            # piexif stocke les valeurs en bytes, pas en str.
             exif_data["0th"][tag_id] = new_value.encode()
-            # encode convertit en byte comme le veut piexif
+        # dump() reserialise tout le dico en bloc exif (bytes),
+        # insert() reecrit ce bloc dans le fichier image sur le disque.
         piexif.insert(piexif.dump(exif_data), img)
-        # dump met en byte (format pour images)
-        # inset met dans l'image
         print(f"[+] EXIF updated in {img}")
     except (OSError, piexif.InvalidImageDataError, ValueError) as e:
+        # OSError : fichier introuvable ou illisible/non inscriptible.
+        # InvalidImageDataError : pas un jpeg/tiff valide (piexif ne gere
+        #   que ces formats), ou image sans exif exploitable.
+        # ValueError : valeur incompatible avec le type attendu du tag
+        #   (leve par dump()).
         print(f"error : {img}: {e}")
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs="+")
+    # groupe de flags mutuellement exclusifs : soit -d soit -m
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-d", "--delete", action="store_true")
+    # un -m par tag a modifier : -m Make=Sony -m Model=X
+    group.add_argument("-m", "--modify", action="append", default=[])
+    return parser.parse_args()
+
+
 def main():
-    argv = sys.argv[1:]
-    # flags == m puis modify
-    for flag in ("-m", "--modify"):
-        if flag not in argv:
-            continue
-        # si flag present check si y'a mot avant le -m qui serait sans -
-        # donc qui serait un fichier
-        before = argv[:argv.index(flag)]
-        has_file = any(not a.startswith("-") for a in before)
-        if not has_file:
-            sys.exit("error :  FILE(s) must come BEFORE -m\n"
-                     "    Correct: scorpion.py file.jpg -m Make=Sony")
-
-    p = argparse.ArgumentParser()
-    p.add_argument("files", nargs="+")
-    # cree groupe dans le parser de flag qui sont mutuellement exclusif
-    g = p.add_mutually_exclusive_group()
-    g.add_argument("-d", "--delete", action="store_true")
-    g.add_argument("-m", "--modify", nargs="+")
-    args = p.parse_args()
-
+    args = get_args()
     for file in args.files:
         if args.delete:
             delete_exif(file)
