@@ -1,0 +1,3 @@
+# Replace this file's content with your Ed25519 public key.
+# Get it via: cat ~/.ssh/id_ed25519.pub
+# Example: ssh-ed25519 AAAAC3Nz... your.email@example.com

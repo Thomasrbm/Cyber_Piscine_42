@@ -1,0 +1,42 @@
+# --- Network ---
+Port 4242
+ListenAddress 127.0.0.1
+AddressFamily inet
+
+# --- Auth ---
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+AuthorizedKeysFile /root/.ssh/authorized_keys
+MaxAuthTries 3
+MaxSessions 2
+LoginGraceTime 30s
+PermitEmptyPasswords no
+
+# --- No tunneling, no forwarding ---
+X11Forwarding no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitTunnel no
+GatewayPorts no
+PermitUserRC no
+
+# --- Strong crypto only ---
+HostKey /etc/ssh/ssh_host_ed25519_key
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+HostKeyAlgorithms ssh-ed25519
+
+# --- Logging ---
+LogLevel VERBOSE
+SyslogFacility AUTH
+
+# --- Idle / misc ---
+ClientAliveInterval 300
+ClientAliveCountMax 2
+UseDNS no
+StrictModes yes
+
+Subsystem sftp /usr/lib/openssh/sftp-server

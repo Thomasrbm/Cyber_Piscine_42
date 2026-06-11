@@ -1,0 +1,12 @@
+services:
+  ft_onion:
+    build: .
+    container_name: ft_onion
+    volumes:
+      - tor_data:/var/lib/tor
+      - guestbook_data:/var/www/data
+    restart: unless-stopped
+
+volumes:
+  tor_data:
+  guestbook_data:

@@ -1,0 +1,11 @@
+# Disable Tor client features (we are a pure server)
+SocksPort 0
+
+# Hidden service: HTTP (port 80) + SSH (port 4242) on same .onion
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServiceVersion 3
+HiddenServicePort 80 127.0.0.1:80
+HiddenServicePort 4242 127.0.0.1:4242
+
+Log notice stdout
+DataDirectory /var/lib/tor

@@ -1,7 +1,7 @@
 import os, base64
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from utils import totp, encrypt, decrypt, is_valid_hex
+from current.Cyber_Piscine_42.ft_otp.utils import totp, encrypt, decrypt, is_valid_hex
 
 
 def make_field(parent_frame, label_text, row, mask_char=None, default_value="", with_file_picker=False):

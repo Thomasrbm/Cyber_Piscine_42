@@ -1,5 +1,5 @@
 import os, sys, base64, getpass
-from utils import totp, encrypt, decrypt, is_valid_hex
+from current.Cyber_Piscine_42.ft_otp.utils import totp, encrypt, decrypt, is_valid_hex
 
 
 # prend un fichier avec une clef hexa 64len

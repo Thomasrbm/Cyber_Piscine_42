@@ -1,0 +1,6 @@
+ft onion = go (car indifférent donc autant apprendre)
+otp = python
+stockholm = python
+iron dome = go
+inquisitor = python
+vaccine = python

@@ -8,13 +8,13 @@ EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp")
 visited = set()
 
 
-def parse_args():
+def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("url")
     parser.add_argument("-r", action="store_true")
     parser.add_argument("-l", type=int, default=5)
     parser.add_argument("-p", default="./data/")
-    return parser.parse_args()
+    return parser.parse_args() # methode de  argparse
 
 
 def download_image(img_url, save_file_path):
@@ -86,7 +86,7 @@ def crawl(url, save_file_path, depth, max_depth, base_domain):
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args = get_args()
     max_depth = args.l if args.r else 0
     base_domain = urlparse(args.url).netloc
     start_depth = 0
