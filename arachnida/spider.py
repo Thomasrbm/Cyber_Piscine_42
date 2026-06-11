@@ -14,7 +14,7 @@ def get_args():
     parser.add_argument("-r", action="store_true")
     parser.add_argument("-l", type=int, default=5)
     parser.add_argument("-p", default="./data/")
-    return parser.parse_args() # methode de  argparse
+    return parser.parse_args()  # methode de  argparse
 
 
 def download_image(img_url, save_file_path):
