@@ -1,72 +1,54 @@
-import os, hmac, hashlib, struct, time
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import hashlib
+import hmac
+import os
+import struct
+import time
+
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-ITER, SALT_LEN, NONCE_LEN = 600_000, 16, 12
-
-
-# hash
-# fait 600k sha256
-# padding 32
-# appel la vraie fonction dans le .derive
-def derive(password, salt):
-    return PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITER).derive(password.encode())
+SALT_LEN = 16        # octets aléatoires mélangés au mot de passe
+NONCE_LEN = 12       # "number used once" exigé par AES-GCM
+ITERATIONS = 600_000
 
 
-# counteur = le nombre de tranches de 30sec depuis epoch
-def hotp(secret, counter, digits=6):
-    # la norme RFC 4226 impose big endian, 64bits,
-    # struct empact le chiffre de temps comme ça
-    counter_bytes = struct.pack(">Q", counter)
-
-    # hmac = creé un hash avec 1 clef + une valeure (ici le temps)
-    mac = hmac.new(secret, counter_bytes, hashlib.sha1).digest()
-    # donne 20 bytes
-
-    # garde les 4 bits les plus a droite du hmac de 20 bytes
-    offset = mac[-1] & 0x0f
-
-    # 4 octet à partir de l'offset
-    chunk = mac[offset:offset+4]
-    # int big endiant du chunk de 4 ( donne un nombre int)
-    raw = int.from_bytes(chunk, "big")
-    # annule le bit de signe pour forcer le chiffre à être positif
-    code = raw & 0x7fffffff
-
-    # nombre modulo 1000000 (10 puissance 6)
-    # garde que 6 dernier chiffres de droites
-    temp_code = code % 10**digits
-    return f"{temp_code:0{digits}d}"
+# 6 — vérifie que la clef fait au moins 64 caractères hexadécimaux
+def is_valid_hex(text):
+    return len(text) >= 64 and all(c in "0123456789abcdefABCDEF" for c in text)
 
 
+# 7 — transforme le mot de passe en clef AES de 32 octets (PBKDF2, 600k tours)
+def derive_key(password, salt):
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITERATIONS)
+    return kdf.derive(password.encode())
+
+
+# 8 — chiffre le secret en AES-GCM, retourne salt + nonce + données chiffrées
+def encrypt(secret, password):
+    salt = os.urandom(SALT_LEN)
+    nonce = os.urandom(NONCE_LEN)
+    aes_key = derive_key(password, salt)
+    return salt + nonce + AESGCM(aes_key).encrypt(nonce, secret, None)
+
+
+# 9 — redécoupe salt + nonce + données puis déchiffre (inverse de encrypt)
+def decrypt(blob, password):
+    salt = blob[:SALT_LEN]
+    nonce = blob[SALT_LEN:SALT_LEN + NONCE_LEN]
+    data = blob[SALT_LEN + NONCE_LEN:]
+    aes_key = derive_key(password, salt)
+    return AESGCM(aes_key).decrypt(nonce, data, None)
+
+
+# 10 — code OTP du moment : le compteur = nombre de tranches de 30s depuis epoch
 def totp(secret):
     return hotp(secret, int(time.time()) // 30)
 
 
-def is_valid_hex(raw):
-    return len(raw) >= 64 and all(c in "0123456789abcdefABCDEF" for c in raw)
-
-
-# hexa en secret + mdp d'input
-def encrypt(secret, password):
-    # salt random de 16 byte
-    # Nonce de 12 random
-    # (nonce = number used once, clef aléatoire pour le chiffrement)
-    salt = os.urandom(16)
-    nonce = os.urandom(12)
-    # crée un clef  AES avec le mdp (clef =c le hash)
-    aes_key = derive(password, salt)
-    cipher = AESGCM(aes_key)
-    # chiffre la clef avec AES
-    ciphertext = cipher.encrypt(nonce, secret, None)
-    return salt + nonce + ciphertext  # concat
-
-
-def decrypt(ciphertext, password):
-    salt = ciphertext[:SALT_LEN]
-    nonce = ciphertext[SALT_LEN:SALT_LEN+NONCE_LEN]
-    ct = ciphertext[SALT_LEN+NONCE_LEN:]
-    aes_key = derive(password, salt)
-    cipher = AESGCM(aes_key)
-    return cipher.decrypt(nonce, ct, None)
+# 11 — RFC 4226 : HMAC-SHA1(secret, compteur) puis extraction de 6 chiffres
+def hotp(secret, counter, digits=6):
+    mac = hmac.new(secret, struct.pack(">Q", counter), hashlib.sha1).digest()
+    offset = mac[-1] & 0x0F                       # 4 bits de poids faible = position
+    code = int.from_bytes(mac[offset:offset + 4], "big") & 0x7FFFFFFF
+    return f"{code % 10 ** digits:0{digits}d}"
